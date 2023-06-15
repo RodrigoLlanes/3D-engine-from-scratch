@@ -1,7 +1,7 @@
 #include <engine.hpp>
 
 #define TH 2
-#define OIT_LAYERS 2
+#define OIT_LAYERS 3
 
 
 Engine::Engine(int width, int height) : _width(width), _height(height) {}
@@ -24,7 +24,8 @@ Engine::~Engine() {
 void Engine::_buildBuffers() {
     this->_screenBuffer = new uint32_t[_width * _height];
     this->_depthBuffer = new float[_width * _height];
-    this->_alphaBuffer = new float[_width * _height * (5 * OIT_LAYERS + 1)];
+    this->_alphaBuffer = new Transparency[_width * _height * OIT_LAYERS];
+    this->_alphaLengthBuffer = new int[_width * _height];
     this->_maxBuffer = new int[_height];
     this->_minBuffer = new int[_height];
     _clearDepthBuffer();
@@ -44,8 +45,8 @@ void Engine::_clearDepthBuffer() {
 }
 
 void Engine::_clearAlphaBuffer() {
-    for (int i = 0; i < _width * _height * (5 * OIT_LAYERS + 1); i++) {
-        _alphaBuffer[i] = 0;
+    for (int i = 0; i < _width * _height; i++) {
+        _alphaLengthBuffer[i] = 0;
     }
 }
 
@@ -69,15 +70,14 @@ void Engine::bindBuffer(int buffer, float *value) {
 void Engine::setPixel(int x, int y, int r, int g, int b, int a) {
     int index = (y * this->_width) + x;
     if (a < 255) {
-        float alpha = ((float) a) / 255.0f;
         uint32_t color = _screenBuffer[index];
-        int or = ((color >> 16) & 255) * (1.0f-alpha);
-        int og = ((color >> 8) & 255) * (1.0f-alpha);
-        int ob = (color & 255) * (1.0f-alpha);
+        int or = (((color >> 16) & 255) * (255 - a)) / 255;
+        int og = (((color >> 8) & 255) * (255 - a)) / 255;
+        int ob = ((color & 255) * (255 - a)) / 255;
 
-        r = or + r * alpha;
-        g = og + g * alpha;
-        b = ob + b * alpha;
+        r = or + (r * a) / 255;
+        g = og + (g * a) / 255;
+        b = ob + (b * a) / 255;
     }
     this->_screenBuffer[index] = (255<<24) | (r<<16) | (g<<8) | b;
 }
@@ -289,17 +289,25 @@ void Engine::draw(bool depth) {
                     if (z < -1.0 || z > _depthBuffer[x + y * _width]) { continue; }
 
                     if (a < 255 - TH) {
-                        int index = (x + y * _width) * (5 * OIT_LAYERS + 1);
-                        if (_alphaBuffer[index] == OIT_LAYERS) {
+                        int index = (x + y * _width);
+                        int d = _alphaLengthBuffer[index];
+                        if (d == OIT_LAYERS) {
                             setPixel(x, y, r, g, b, a);
                         } else {
-                            int d = _alphaBuffer[index] * 5 + 1;
-                            _alphaBuffer[index]++;
-                            _alphaBuffer[index + d] = r;
-                            _alphaBuffer[index + d + 1] = g;
-                            _alphaBuffer[index + d + 2] = b;
-                            _alphaBuffer[index + d + 3] = a;
-                            _alphaBuffer[index + d + 4] = z;
+                            _alphaLengthBuffer[index]++;
+                            int i;
+                            for (i = index * OIT_LAYERS; i < index * OIT_LAYERS + d; i++) {
+                                if (_alphaBuffer[i].z < z) {
+                                    for (int j = index * OIT_LAYERS + d; j > i; j--) {
+                                        _alphaBuffer[j] = _alphaBuffer[j-1];
+                                    }
+                                    _alphaBuffer[i] = {r, g, b, a, z};
+                                    break;
+                                }
+                            }
+                            if (i == index * OIT_LAYERS + d) {
+                                _alphaBuffer[index * OIT_LAYERS + d] = {r, g, b, a, z};
+                            }
                         }
                         continue;
                     }
@@ -321,29 +329,13 @@ void Engine::draw(bool depth) {
     
     for (int y = 0; y < _height; y++) {
         for (int x = 0; x < _width; x++) {
-            int index = (x + y * _width) * (5 * OIT_LAYERS + 1);
-            if (_alphaBuffer[index] == 0) { continue; }
-
-            if (_alphaBuffer[index] == 1 && _alphaBuffer[index+5] < _depthBuffer[x + y * _width] ) {
-                setPixel(x, y, _alphaBuffer[index+1], _alphaBuffer[index + 2], _alphaBuffer[index + 3], _alphaBuffer[index + 4]);
-            }
             
-            if (_alphaBuffer[index] == 2 ) {
-                if ( _alphaBuffer[index+5] < _alphaBuffer[index+10]) {
-                    if (_alphaBuffer[index+10] < _depthBuffer[x + y * _width] ) {
-                        setPixel(x, y, _alphaBuffer[index+6], _alphaBuffer[index + 7], _alphaBuffer[index + 8], _alphaBuffer[index + 9]);
-                    }
-                    if (_alphaBuffer[index+5] < _depthBuffer[x + y * _width] ) {
-                        setPixel(x, y, _alphaBuffer[index+1], _alphaBuffer[index + 2], _alphaBuffer[index + 3], _alphaBuffer[index + 4]);
-                    }
-                } else {
-                    if (_alphaBuffer[index+5] < _depthBuffer[x + y * _width] ) {
-                        setPixel(x, y, _alphaBuffer[index+1], _alphaBuffer[index + 2], _alphaBuffer[index + 3], _alphaBuffer[index + 4]);
-                    }
-                    if (_alphaBuffer[index+10] < _depthBuffer[x + y * _width] ) {
-                        setPixel(x, y, _alphaBuffer[index+6], _alphaBuffer[index + 7], _alphaBuffer[index + 8], _alphaBuffer[index + 9]);
-                    }
-                }
+            int index = (x + y * _width);
+            int d = _alphaLengthBuffer[index];
+            index *= OIT_LAYERS;
+
+            for (int i = index; i < index + d; i++) {
+                setPixel(x, y, _alphaBuffer[i].r, _alphaBuffer[i].g, _alphaBuffer[i].b, _alphaBuffer[i].a);
             }
         }
     }

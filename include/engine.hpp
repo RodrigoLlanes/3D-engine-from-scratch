@@ -16,6 +16,11 @@ struct Job {
     int colorStart = -1, colorStride = -1;
 };
 
+struct Transparency {
+    int r, g, b, a;
+    float z;
+};
+
 struct Vec3 {
     float x, y, z;
 };
@@ -27,7 +32,8 @@ private:
     std::queue<Job*> _jobs;
     uint32_t *_screenBuffer;
     float *_depthBuffer;
-    float *_alphaBuffer;
+    Transparency *_alphaBuffer;
+    int *_alphaLengthBuffer;
     int *_maxBuffer, *_minBuffer;
     int _width, _height;
 
