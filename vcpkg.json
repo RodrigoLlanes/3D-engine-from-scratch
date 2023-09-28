@@ -1,0 +1,12 @@
+{
+  "name" : "graphic-engine",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "db0473513e5dc73ec6b6f431ff05d2f398eea042",
+  "dependencies" : [ {
+    "name" : "eigen3",
+    "version>=" : "3.4.0#2"
+  }, {
+    "name" : "sdl2",
+    "version>=" : "2.28.3"
+  } ]
+}
