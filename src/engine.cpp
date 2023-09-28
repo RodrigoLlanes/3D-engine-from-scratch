@@ -339,10 +339,8 @@ void Engine::draw(bool depth) {
         delete job;
     }
 
-
     for (int y = 0; y < _height; y++) {
         for (int x = 0; x < _width; x++) {
-
             int index = (x + y * _width);
             int d = _alphaLengthBuffer[index];
             index *= OIT_LAYERS;

@@ -22,6 +22,7 @@ using Eigen::Vector4i;
 using Eigen::Vector3i;
 using Eigen::Vector2i;
 
+
 struct Job {
     int buffer, n, start, stride;
     int colorStart = -1, colorStride = -1;
@@ -74,8 +75,6 @@ public:
 
     // 2D drawing
     void setPixel(int x, int y, int r, int g, int b, int a=255);
-    void setPixel(Vector2i pos, Vector3i color);
-    void setPixel(Vector2i pos, Vector4i color);
     void drawLine(int x0, int y0, int x1, int y1);
     void drawPoint(int x, int y);
 

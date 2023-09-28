@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
             -0.5, -1.7, 0.0,   0, 0,   255, 125,
             0.5, -0.7, 0.0,   0, 0,   255, 125,
             0.0,  0.7, 0.0,   0, 0,   255, 125,
-
     };
 
     int buffer = engine.createBuffer();
@@ -91,17 +90,17 @@ int main(int argc, char *argv[])
         // Events management
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-                case SDL_QUIT:
-                    close = true;
-                    break;
-                case SDL_KEYDOWN:
-                    if (event.key.keysym.sym == SDLK_d) { depth = !depth; }
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    int x, y;
-                    SDL_GetMouseState(&x, &y);
-                    cout << "click at " << x << " " << y << endl;
-                    break;
+            case SDL_QUIT:
+                close = true;
+                break;
+            case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_d) { depth = !depth; } 
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                std::cout << "click at " << x << " " << y << std::endl;
+                break;
             }
         }
 
@@ -111,6 +110,5 @@ int main(int argc, char *argv[])
         engine.draw(depth);
         SDL_Delay(1000 / 60);
     }
-
     return 0;
 }
