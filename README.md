@@ -10,13 +10,13 @@ Código de la serie de directos (y próximamente videos) en los que desarrollamo
   - Interpolación de color por vértice (por coordenadas baricéntricas).
 - Buffer de profundidad.
 - OIT (Order-independent transparency), renderizado de transparencias empleando el algoritmo simple.
+- Shaders de vértices y de fragmentos.
 
 
 ## Dependencias
 
 - [SDL2](https://www.libsdl.org) (Únicamente para dibujar pixeles en pantalla).
 - [Cabecera `stb_image.h`](https://github.com/nothings/stb/tree/master) (Para la carga de imágenes).
-- [Eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) (Para el cálculo vectorial).
 
 
 ## Otros recursos de terceros

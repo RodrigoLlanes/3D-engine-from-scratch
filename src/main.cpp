@@ -1,6 +1,8 @@
 #include <engine.hpp>
 #include <image.hpp>
+#include "shaders/colorShader.hpp"
 
+#include<ctime>
 #include <iostream>
 #include <fstream>
 
@@ -8,6 +10,7 @@
 using namespace std;
 
 
+/*
 void plotImage(Image img) {
     Engine engine(img.width, img.height);
 
@@ -40,14 +43,16 @@ void plotImage(Image img) {
         engine.switchBuffers();
         SDL_Delay(1000 / 60);
     }
-}
+}*/
 
 
 int main(int argc, char *argv[])
 {
-    Engine engine(1000, 1000);
+    Engine::Engine engine(1000, 1000);
+    Engine::Shaders::Shader *shader = new Engine::Shaders::ColorShader();
 
     engine.init();
+    engine.shader = shader;
 
     bool depth = false;
 
@@ -62,27 +67,40 @@ int main(int argc, char *argv[])
          0.0,  0.5, 0.0,   0,   0, 255, 255
     };*/
 
-    float *triangle = new float[7 * 3 * 4] {
-            // Points        // Colors (RGBA)
-            -0.5,  0.5, 0.1, 255,   0,   0, 125,
-            0.5,  1.5, 0.1, 255,   0,   0, 125,
-            0.0, -0.5, 0.1, 255,   0,   0, 125,
+    vector<Engine::Shaders::Shader::VertexData*> triangle = {
+            new Engine::Shaders::ColorShader::VertexData({-0.5,   0.5, 0.0}, {255,   0,   0, 255}),
+            new Engine::Shaders::ColorShader::VertexData({ 0.5,   0.5, 0.5}, {255,   0,   0, 255}),
+            new Engine::Shaders::ColorShader::VertexData({ 0.0,  -0.5, 0.5}, {255,   0,   0, 255}),
 
-            -0.3, -0.3, 0.2,   255, 255,   0, 125,
-            1.3, -0.3, 0.2,   255, 255,   0, 125,
-            0.0,  0.3, 0.2,   255, 255,   0, 125,
-
-            -1.5, -0.5, 0.5,   0, 255,   0, 255,
-            0.5, -0.5, 0.5,   0, 255,   0, 255,
-            0.0,  0.5, 0.5,   0, 255,   0, 255,
-
-            -0.5, -1.7, 0.0,   0, 0,   255, 125,
-            0.5, -0.7, 0.0,   0, 0,   255, 125,
-            0.0,  0.7, 0.0,   0, 0,   255, 125,
+            new Engine::Shaders::ColorShader::VertexData({-0.5, -0.5, 0.5}, {255,   0,   0, 255}),
+            new Engine::Shaders::ColorShader::VertexData({ 0.5, -0.5, 0.0}, {  0, 255,   0, 255}),
+            new Engine::Shaders::ColorShader::VertexData({ 0.0,  0.5, 0.0}, {  0,   0, 255, 255}),
     };
 
+    /*vector<Engine::Shaders::Shader::VertexData*> triangle = {
+            new Engine::Shaders::ColorShader::VertexData({-0.5,  0.5, 0.1}, {255,   0,   0, 125}),
+            new Engine::Shaders::ColorShader::VertexData({0.5,  1.5, 0.1}, {255,   0,   0, 125}),
+            new Engine::Shaders::ColorShader::VertexData({0.0, -0.5, 0.1}, {255,   0,   0, 125}),
+
+            new Engine::Shaders::ColorShader::VertexData({-0.3, -0.3, 0.2}, {255, 255,   0, 125}),
+            new Engine::Shaders::ColorShader::VertexData({1.3, -0.3, 0.2}, {255, 255,   0, 125}),
+            new Engine::Shaders::ColorShader::VertexData({0.0,  0.3, 0.2}, {255, 255,   0, 125}),
+
+            new Engine::Shaders::ColorShader::VertexData({-1.5, -0.5, 0.5}, {0, 255,   0, 255}),
+            new Engine::Shaders::ColorShader::VertexData({0.5, -0.5, 0.5}, {0, 255,   0, 255}),
+            new Engine::Shaders::ColorShader::VertexData({0.0,  0.5, 0.5}, {0, 255,   0, 255}),
+
+            new Engine::Shaders::ColorShader::VertexData({-0.5, -1.7, 0.0}, {0, 0,   255, 125}),
+            new Engine::Shaders::ColorShader::VertexData({0.5, -0.7, 0.0}, {0, 0,   255, 125}),
+            new Engine::Shaders::ColorShader::VertexData({0.0,  0.7, 0.0}, {0, 0,   255, 125}),
+    };*/
+
     int buffer = engine.createBuffer();
-    engine.bindBuffer(buffer, triangle);
+    engine.bindBuffer(buffer, &triangle);
+
+    int frames = 0;
+    int startTime = time(nullptr);
+    int currentTime;
 
     bool close = false;
     while (!close) {
@@ -104,11 +122,15 @@ int main(int argc, char *argv[])
             }
         }
 
-        engine.drawTriangle(buffer, 3 * 4, 0, 7);
-        engine.setVertexColor(3, 7);
+        engine.drawTriangle(buffer, 6);
 
         engine.draw(depth);
         SDL_Delay(1000 / 60);
+
+        frames += 1;
+        currentTime = time(nullptr);
+        cout << "Frame rate: " <<  (float) frames / (float) (currentTime - startTime) << endl;
+
     }
     return 0;
 }

@@ -33,7 +33,7 @@ Vector4i Image::getRGBA(int x, int y) {
 }
 
 Vector4i Image::getRGBA(Vector2i pos) {
-    return getRGBA(pos.x(), pos.y());
+    return getRGBA(pos.x, pos.y);
 }
 
 Vector4f Image::get(int x, int y) {
@@ -47,5 +47,5 @@ Vector4f Image::get(int x, int y) {
 }
 
 Vector4f Image::get(Vector2i pos) {
-    return get(pos.x(), pos.y());
+    return get(pos.x, pos.y);
 }

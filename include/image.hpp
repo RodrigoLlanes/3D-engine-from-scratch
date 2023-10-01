@@ -6,11 +6,7 @@
 #define GRAPHIC_ENGINE_IMAGE_HPP
 
 
-#include <Eigen/Dense>
-
-using Eigen::Vector4f;
-using Eigen::Vector4i;
-using Eigen::Vector2i;
+#include "vectors.hpp"
 
 
 class Image {
